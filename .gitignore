@@ -1,41 +1,53 @@
-# Prerequisites
-*.d
+# Devtools
+.idea/
+output/*
+*.plist
+clion/
+*.swp
+tags
+sftp-config.json
+build_cmakelist.py
+.akconfig
+.vscode/
+.cloudide/
+*.code-workspace
+vipclient-*
+*.pb.h
+*.pb.cc
+compile_commands.json
+.clangd
+Pipfile
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# python-package
+/dist
+*.egg-info
+__pycache__
+build
+_build
 
-# Precompiled Headers
-*.gch
-*.pch
+# bazel
+bazel-*
 
-# Linker files
-*.ilk
+# cmake related
+abseil-cpp
+bld
+bld.install
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
 
-# Debugger Files
-*.pdb
+# mixed
+.DS_Store
+.ipynb_checkpoints
+trace.*log
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+dump/
 
-# Fortran module files
-*.mod
-*.smod
+# clangd cache
+.cache
+external
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+#brpc
+rpc_data
 
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
+Testing/Temporary/*
