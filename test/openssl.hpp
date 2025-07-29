@@ -28,6 +28,12 @@
 
 namespace dlutils {
 
+// Define the missing definition of ossl structures
+typedef struct evp_md_ctx_st EVP_MD_CTX;
+typedef struct evp_md_st EVP_MD;
+
+#define EVP_MAX_MD_SIZE (16 + 20) /* The SSLv3 md5+sha1 type */
+
 class LibCrypto : public DlLibBase {
 public:
   ~LibCrypto() = default;
@@ -53,15 +59,19 @@ public:
   // Declare all functions that you need
   // NOTE Please make sure the class instance is inited before calling those
   // functions
+  // EVP_MD_CTX *EVP_MD_CTX_new(void);
+  DlFun<EVP_MD_CTX *> EVP_MD_CTX_new;
 
 private:
   void LoadAll() {
     // NOTE explicitly dlopen shared library
     SelfDlOpen();
-    // DLUTILS_SELF_DLSYM();
+    DLUTILS_SELF_DLSYM(EVP_MD_CTX_new);
   }
 
   LibCrypto() : DlLibBase(LIB_NAME) { LoadAll(); }
 
   static constexpr std::string_view LIB_NAME = "libcrypto.so";
 };
+
+} // namespace dlutils
