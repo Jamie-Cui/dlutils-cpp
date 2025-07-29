@@ -23,10 +23,9 @@
 #pragma once
 
 #include <dlfcn.h>
+#include <string>
 
-#include <cstdint>
 #include <functional>
-#include <memory>
 #include <sstream>
 #include <vector>
 

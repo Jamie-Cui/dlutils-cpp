@@ -22,8 +22,7 @@
 
 #include "openssl.hpp"
 #include "gtest/gtest.h"
-
-#include <iostream>
+#include <cstdio>
 
 namespace dlutils {
 
