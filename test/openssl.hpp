@@ -31,6 +31,7 @@ namespace dlutils {
 // Define the missing definition of ossl structures
 typedef struct evp_md_ctx_st EVP_MD_CTX;
 typedef struct evp_md_st EVP_MD;
+typedef struct engine_st ENGINE;
 
 #define EVP_MAX_MD_SIZE (16 + 20) /* The SSLv3 md5+sha1 type */
 
@@ -59,14 +60,23 @@ public:
   // Declare all functions that you need
   // NOTE Please make sure the class instance is inited before calling those
   // functions
-  // EVP_MD_CTX *EVP_MD_CTX_new(void);
   DlFun<EVP_MD_CTX *> EVP_MD_CTX_new;
+  DlFun<const EVP_MD *> EVP_sha256;
+  DlFun<int, EVP_MD_CTX *, const EVP_MD *, ENGINE *> EVP_DigestInit_ex;
+  DlFun<int, EVP_MD_CTX *, const void *, size_t> EVP_DigestUpdate;
+  DlFun<int, EVP_MD_CTX *, unsigned char *, unsigned int *> EVP_DigestFinal_ex;
+  DlFun<void, EVP_MD_CTX *> EVP_MD_CTX_free;
 
 private:
   void LoadAll() {
     // NOTE explicitly dlopen shared library
     SelfDlOpen();
     DLUTILS_SELF_DLSYM(EVP_MD_CTX_new);
+    DLUTILS_SELF_DLSYM(EVP_sha256);
+    DLUTILS_SELF_DLSYM(EVP_DigestInit_ex);
+    DLUTILS_SELF_DLSYM(EVP_DigestUpdate);
+    DLUTILS_SELF_DLSYM(EVP_DigestFinal_ex);
+    DLUTILS_SELF_DLSYM(EVP_MD_CTX_free);
   }
 
   LibCrypto() : DlLibBase(LIB_NAME) { LoadAll(); }
