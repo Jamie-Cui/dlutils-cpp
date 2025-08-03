@@ -44,13 +44,16 @@ TEST(OpenSSLTest, ShouldWork) {
   ASSERT_NE(md, nullptr) << "Error getting SHA256 method";
 
   // 3. Initialize the digest operation
-  ASSERT_EQ(libcrypto.EVP_DigestInit_ex(mdctx, md, NULL), 1) << "Error initializing digest";
+  ASSERT_EQ(libcrypto.EVP_DigestInit_ex(mdctx, md, nullptr), 1)
+      << "Error initializing digest";
 
   // 4. Update the digest with the data
-  ASSERT_EQ(libcrypto.EVP_DigestUpdate(mdctx, message, strlen(message)), 1) << "Error updating digest";
+  ASSERT_EQ(libcrypto.EVP_DigestUpdate(mdctx, message, strlen(message)), 1)
+      << "Error updating digest";
 
   // 5. Finalize the digest and retrieve the hash value
-  ASSERT_EQ(libcrypto.EVP_DigestFinal_ex(mdctx, md_value, &md_len), 1) << "Error finalizing digest";
+  ASSERT_EQ(libcrypto.EVP_DigestFinal_ex(mdctx, md_value, &md_len), 1)
+      << "Error finalizing digest";
 
   // 6. Free the message digest context
   libcrypto.EVP_MD_CTX_free(mdctx);
