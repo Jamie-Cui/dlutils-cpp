@@ -95,7 +95,8 @@ public:
     if (funptr_ == nullptr) {
       throw std::runtime_error(internal::MakeString(
           "[", __FILE__ ":", __LINE__, "] Fatal Error: function ", funName_,
-          " is nullptr, maybe previous dlsym failed."));
+          " is nullptr. This typically means dlsym failed to load the function. ",
+          "Check that the library is properly loaded and the function name is correct."));
     }
     return funptr_(std::forward<Args>(args)...);
   }

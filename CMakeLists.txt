@@ -63,3 +63,18 @@ target_include_directories(
          ${CMAKE_DEPS_INCLUDEDIR})
 
 add_test(NAME openssl_test COMMAND openssl_test)
+
+# Add dlutils core tests
+add_executable(dlutils_test ${CMAKE_CURRENT_LIST_DIR}/test/dlutils_test.cpp ${CMAKE_CURRENT_LIST_DIR}/test/dllibase_extended_test.cpp)
+target_link_libraries(dlutils_test PRIVATE Deps::gtest)
+target_include_directories(
+  dlutils_test
+  PUBLIC # these dirs are only used when building inside the build tree
+         "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>"
+         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+         # these dirs are only used when linking against a prebuilt package
+         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+         ${PROJECT_SOURCE_DIR}/include
+         ${CMAKE_DEPS_INCLUDEDIR})
+
+add_test(NAME dlutils_test COMMAND dlutils_test)
