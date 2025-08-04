@@ -1,3 +1,5 @@
+build_coverage
+
 # Devtools
 .idea/
 output/*

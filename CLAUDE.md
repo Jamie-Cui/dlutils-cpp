@@ -42,6 +42,17 @@ ctest
 ./openssl_test
 ```
 
+### Generating Coverage Reports
+```bash
+mkdir build && cd build
+cmake -DENABLE_COVERAGE=ON ..
+make
+ctest  # Run tests to generate coverage data
+make coverage  # Generate coverage report (lcov/html if available, gcov files otherwise)
+# If lcov is installed: Open coverage_report/index.html in your browser to view the report
+# If lcov is not installed: Gcov files will be generated in the gcov_report directory
+```
+
 ### Adding New Functions
 1. Add a new `DlFun<>` member to your library class (e.g., `LibCrypto`)
 2. Add the function name to the `LoadAll()` method using `DLUTILS_SELF_DLSYM(NAME)`
