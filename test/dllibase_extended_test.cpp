@@ -31,16 +31,16 @@ namespace dlutils {
 class ExtendedMockDlLib : public DlLibBase {
 public:
   explicit ExtendedMockDlLib(std::string_view lib) : DlLibBase(lib) {}
-  
+
   bool OpenLib() { return SelfDlOpen(); }
-  
+
   template <class R, class... Args>
   bool LoadSymbol(std::string_view funName, DlFun<R, Args...> &outFun) {
     return SelfDlSym(funName, outFun);
   }
-  
+
   bool CheckCache() { return CheckFunCache(); }
-  
+
   size_t CacheSize() { return GetFunCacheSize(); }
 };
 
@@ -56,7 +56,8 @@ TEST(DlLibBaseExtendedTest, LoadInvalidFunction) {
   DlFun<int, int, int> func;
   // This should return false because the library wasn't opened
   EXPECT_FALSE(lib.LoadSymbol("nonexistent_function", func));
-  // The function name should still be "unknown" because LoadSymbol didn't succeed
+  // The function name should still be "unknown" because LoadSymbol didn't
+  // succeed
   EXPECT_EQ(func.GetName(), "unknown");
 }
 
@@ -84,7 +85,7 @@ TEST(DlLibBaseExtendedTest, FunCacheSizeInitiallyZero) {
 // Tests for DlLibBase class CheckFunCache initially true
 TEST(DlLibBaseExtendedTest, CheckFunCacheInitiallyTrue) {
   ExtendedMockDlLib lib("libnonexistent.so");
-  
+
   // Initially no functions loaded, so should return true
   EXPECT_TRUE(lib.CheckCache());
 }

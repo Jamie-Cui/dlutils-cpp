@@ -37,9 +37,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 
 # Coverage flags
-option(ENABLE_COVERAGE "Enable code coverage reporting" OFF)
+option(ENABLE_COVERAGE "Enable code coverage reporting" ON)
 if(ENABLE_COVERAGE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
+  set(CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lgcov --coverage")
 endif()
 
@@ -72,7 +73,9 @@ target_include_directories(
 add_test(NAME openssl_test COMMAND openssl_test)
 
 # Add dlutils core tests
-add_executable(dlutils_test ${CMAKE_CURRENT_LIST_DIR}/test/dlutils_test.cpp ${CMAKE_CURRENT_LIST_DIR}/test/dllibase_extended_test.cpp)
+add_executable(
+  dlutils_test ${CMAKE_CURRENT_LIST_DIR}/test/dlutils_test.cpp
+               ${CMAKE_CURRENT_LIST_DIR}/test/dllibase_extended_test.cpp)
 target_link_libraries(dlutils_test PRIVATE Deps::gtest)
 target_include_directories(
   dlutils_test
@@ -90,20 +93,26 @@ add_test(NAME dlutils_test COMMAND dlutils_test)
 if(ENABLE_COVERAGE)
   find_program(LCOV_PATH lcov)
   find_program(GENHTML_PATH genhtml)
-  
+
   if(LCOV_PATH AND GENHTML_PATH)
-    add_custom_target(coverage
-      COMMAND ${LCOV_PATH} --capture --directory . --output-file coverage.info --ignore-errors mismatch
-      COMMAND ${GENHTML_PATH} coverage.info --output-directory ${CMAKE_BINARY_DIR}/coverage_report
+    add_custom_target(
+      coverage
+      COMMAND ${LCOV_PATH} --capture --directory . --output-file coverage.info
+              --ignore-errors mismatch
+      COMMAND ${GENHTML_PATH} coverage.info --output-directory
+              ${CMAKE_BINARY_DIR}/coverage_report
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Generating code coverage report..."
       VERBATIM)
   else()
     # Fallback to simple gcov output
-    add_custom_target(coverage
-      COMMAND ${CMAKE_COMMAND} -E echo "lcov and/or genhtml not found. Generating gcov files instead."
+    add_custom_target(
+      coverage
+      COMMAND ${CMAKE_COMMAND} -E echo
+              "lcov and/or genhtml not found. Generating gcov files instead."
       COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/gcov_report
-      COMMAND find . -name "*.gcda" -exec gcov -o ${CMAKE_BINARY_DIR}/gcov_report {} +
+      COMMAND find . -name "*.gcda" -exec gcov -o
+              ${CMAKE_BINARY_DIR}/gcov_report {} +
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMENT "Generating gcov coverage report..."
       VERBATIM)

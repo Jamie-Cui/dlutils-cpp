@@ -36,7 +36,7 @@ TEST(MakeStringTest, WithSingleString) {
 }
 
 TEST(MakeStringTest, WithCString) {
-  const char* cstr = "World";
+  const char *cstr = "World";
   std::string result = internal::MakeString(cstr);
   EXPECT_EQ(result, "World");
 }
@@ -107,16 +107,16 @@ TEST(DlFunTest, CallOperatorWithNullptr) {
 class MockDlLib : public DlLibBase {
 public:
   explicit MockDlLib(std::string_view lib) : DlLibBase(lib) {}
-  
+
   bool OpenLib() { return SelfDlOpen(); }
-  
+
   template <class R, class... Args>
   bool LoadSymbol(std::string_view funName, DlFun<R, Args...> &outFun) {
     return SelfDlSym(funName, outFun);
   }
-  
+
   bool CheckCache() { return CheckFunCache(); }
-  
+
   size_t CacheSize() { return GetFunCacheSize(); }
 };
 
