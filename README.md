@@ -1,6 +1,6 @@
 # dlutils-cpp
 
-[![Build and Coverage](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml/badge.svg)](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml)
+[![ci](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml/badge.svg)](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml)
 [![codecov](https://codecov.io/gh/Jamie-Cui/dlutils-cpp/branch/main/graph/badge.svg)](https://codecov.io/gh/Jamie-Cui/dlutils-cpp)
 
 A header-only C++ library for dynamic loading utilities that provides safe and convenient wrappers around `dlopen`/`dlsym` for dynamically loading shared libraries at runtime.
