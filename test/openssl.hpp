@@ -62,6 +62,7 @@ public:
   // functions
   DlFun<EVP_MD_CTX *> EVP_MD_CTX_new;
   DlFun<const EVP_MD *> EVP_sha256;
+  DlFun<const EVP_MD *> EVP_sha1;  // Additional hash function for testing
   DlFun<int, EVP_MD_CTX *, const EVP_MD *, ENGINE *> EVP_DigestInit_ex;
   DlFun<int, EVP_MD_CTX *, const void *, size_t> EVP_DigestUpdate;
   DlFun<int, EVP_MD_CTX *, unsigned char *, unsigned int *> EVP_DigestFinal_ex;
@@ -73,6 +74,7 @@ private:
     SelfDlOpen();
     DLUTILS_SELF_DLSYM(EVP_MD_CTX_new);
     DLUTILS_SELF_DLSYM(EVP_sha256);
+    DLUTILS_SELF_DLSYM(EVP_sha1);
     DLUTILS_SELF_DLSYM(EVP_DigestInit_ex);
     DLUTILS_SELF_DLSYM(EVP_DigestUpdate);
     DLUTILS_SELF_DLSYM(EVP_DigestFinal_ex);

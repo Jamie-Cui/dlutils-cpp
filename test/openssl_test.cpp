@@ -69,4 +69,65 @@ TEST(OpenSSLTest, ShouldWork) {
   printf("\n");
 }
 
+// Additional test using SHA1 hash function
+TEST(OpenSSLTest, ShouldWorkWithSHA1) {
+  auto libcrypto = LibCrypto::GetInstance();
+  EVP_MD_CTX *mdctx;
+  const EVP_MD *md;
+  unsigned char md_value[EVP_MAX_MD_SIZE];
+  unsigned int md_len;
+  const char *message = "Hello, OpenSSL Hashing!";
+
+  // 1. Initialize the message digest context
+  mdctx = libcrypto.EVP_MD_CTX_new();
+  ASSERT_NE(mdctx, nullptr) << "Error creating EVP_MD_CTX";
+
+  // 2. Select the SHA1 hash algorithm
+  md = libcrypto.EVP_sha1();
+  ASSERT_NE(md, nullptr) << "Error getting SHA1 method";
+
+  // 3. Initialize the digest operation
+  ASSERT_EQ(libcrypto.EVP_DigestInit_ex(mdctx, md, nullptr), 1)
+      << "Error initializing digest";
+
+  // 4. Update the digest with the data
+  ASSERT_EQ(libcrypto.EVP_DigestUpdate(mdctx, message, strlen(message)), 1)
+      << "Error updating digest";
+
+  // 5. Finalize the digest and retrieve the hash value
+  ASSERT_EQ(libcrypto.EVP_DigestFinal_ex(mdctx, md_value, &md_len), 1)
+      << "Error finalizing digest";
+
+  // 6. Free the message digest context
+  libcrypto.EVP_MD_CTX_free(mdctx);
+
+  // Verify we got a hash of the expected length (SHA1 = 20 bytes)
+  EXPECT_EQ(md_len, 20u);
+
+  // Print the hash value
+  printf("SHA1 Hash of \"%s\": ", message);
+  for (unsigned int i = 0; i < md_len; i++) {
+    printf("%02x", md_value[i]);
+  }
+  printf("\n");
+}
+
+// Test to verify library loading status functions
+TEST(OpenSSLTest, LibraryStatus) {
+  auto libcrypto = LibCrypto::GetInstance();
+  
+  // Test Size() function
+  EXPECT_GT(libcrypto.Size(), 0u);
+  
+  // Test CheckOk() function
+  EXPECT_TRUE(libcrypto.CheckOk());
+  
+  // Test Reload() function
+  EXPECT_TRUE(libcrypto.Reload());
+  EXPECT_TRUE(libcrypto.CheckOk());
+}
+
+// Note: Removed the ErrorConditions test as calling OpenSSL functions with null pointers
+// can cause segfaults in the underlying library, which is not a fault of our wrapper.
+
 } // namespace dlutils

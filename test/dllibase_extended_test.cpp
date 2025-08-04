@@ -90,4 +90,61 @@ TEST(DlLibBaseExtendedTest, CheckFunCacheInitiallyTrue) {
   EXPECT_TRUE(lib.CheckCache());
 }
 
+// Additional extended tests for DlLibBase class
+TEST(DlLibBaseExtendedTest, FunCacheSizeAfterMultipleLoads) {
+  ExtendedMockDlLib lib("libnonexistent.so");
+  DlFun<int, int, int> func1;
+  DlFun<double, double> func2;
+  DlFun<void> func3;
+  
+  // Cache size should be 0 initially
+  EXPECT_EQ(lib.CacheSize(), 0u);
+  
+  // Try to load functions without opening library
+  // These should return false and not add to cache since preconditions aren't met
+  EXPECT_FALSE(lib.LoadSymbol("func1", func1));
+  EXPECT_FALSE(lib.LoadSymbol("func2", func2));
+  EXPECT_FALSE(lib.LoadSymbol("func3", func3));
+  
+  // Cache size should still be 0 since SelfDlSym returns false when preconditions aren't met
+  EXPECT_EQ(lib.CacheSize(), 0u);
+  
+  // CheckFunCache should return true since cache is empty
+  EXPECT_TRUE(lib.CheckCache());
+}
+
+TEST(DlLibBaseExtendedTest, FunCacheSizeAfterMixedSuccessFailure) {
+  ExtendedMockDlLib lib("libnonexistent.so");
+  DlFun<int, int, int> func1;
+  DlFun<double, double> func2;
+  
+  // Cache size should be 0 initially
+  EXPECT_EQ(lib.CacheSize(), 0u);
+  
+  // Try to load one function without opening library (should fail)
+  EXPECT_FALSE(lib.LoadSymbol("func1", func1));
+  
+  // Cache size should still be 0 since SelfDlSym returns false when preconditions aren't met
+  EXPECT_EQ(lib.CacheSize(), 0u);
+  
+  // CheckFunCache should return true since cache is empty
+  EXPECT_TRUE(lib.CheckCache());
+}
+
+TEST(DlLibBaseExtendedTest, ConstructorWithLongLibraryName) {
+  std::string longName(1000, 'a');
+  longName += ".so";
+  ExtendedMockDlLib lib(longName);
+  // Constructor test - should not throw
+  SUCCEED();
+}
+
+TEST(DlLibBaseExtendedTest, LoadSymbolWithVeryLongFunctionName) {
+  ExtendedMockDlLib lib("libnonexistent.so");
+  DlFun<int, int, int> func;
+  std::string longFuncName(1000, 'f');
+  EXPECT_FALSE(lib.LoadSymbol(longFuncName, func));
+  EXPECT_EQ(func.GetName(), "unknown");
+}
+
 } // namespace dlutils
