@@ -34,21 +34,34 @@ jobs:
       run: |
         cd build
         make coverage
+        # List what was actually generated
+        echo "Contents of build directory:"
+        ls -la
+        echo "Contents of coverage_report directory (if exists):"
+        ls -la coverage_report/ || echo "coverage_report directory does not exist"
+        echo "Contents of coverage.info file:"
+        ls -la coverage.info || echo "coverage.info file does not exist"
         
     - name: Upload coverage report as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: ./build/coverage_report/
-        
-    - name: Upload gcov files as fallback artifact
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: gcov-report
-        path: ./build/gcov_report/
+        name: coverage-report
+        path: |
+          ./build/coverage.info
+          ./build/coverage_report/
+        if-no-files-found: ignore
         
-    - name: Comment PR with coverage link
+    - name: Upload all build files as artifact (fallback)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: all-build-files
+        path: |
+          ./build/**
+        if-no-files-found: ignore
+        
+    - name: Comment PR with coverage instructions
       if: github.event_name == 'pull_request'
       uses: actions/github-script@v7
       with:
@@ -59,5 +72,5 @@ jobs:
             issue_number: context.issue.number,
             owner: context.repo.owner,
             repo: context.repo.repo,
-            body: `## Code Coverage Report\n\nThe coverage report has been generated and can be downloaded from the [workflow run](${artifactUrl}).\n\nTo view the HTML report:\n1. Download the \`coverage-report\` artifact from the workflow run\n2. Extract the archive\n3. Open \`index.html\` in your browser`
+            body: `## Code Coverage Report\n\nThe coverage report generation has completed and artifacts have been uploaded to the [workflow run](${artifactUrl}).\n\nTo view the HTML report:\n1. Download the \`coverage-report\` artifact from the workflow run\n2. Extract the archive\n3. Open \`coverage_report/index.html\` in your browser\n\nThe coverage report includes detailed information about code coverage for all tests.`
           });
