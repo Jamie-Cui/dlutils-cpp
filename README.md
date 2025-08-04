@@ -1,5 +1,7 @@
 # dlutils-cpp
 
+[![Build and Coverage](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/coverage.yml/badge.svg)](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/coverage.yml)
+
 A header-only C++ library for dynamic loading utilities that provides safe and convenient wrappers around `dlopen`/`dlsym` for dynamically loading shared libraries at runtime.
 
 ## Features
@@ -110,6 +112,12 @@ make coverage  # Generate coverage report
 
 If `lcov` is installed, open `coverage_report/index.html` in your browser to view the report.
 Otherwise, `gcov` files will be generated in the `gcov_report` directory.
+
+### Continuous Integration
+
+This project uses GitHub Actions for continuous integration. Code coverage reports are automatically generated for each pull request and push to the main branch. You can view the reports by downloading the artifacts from the workflow runs.
+
+[![codecov](https://codecov.io/gh/Jamie-Cui/dlutils-cpp/branch/main/graph/badge.svg)](https://codecov.io/gh/Jamie-Cui/dlutils-cpp)
 
 ## Adding New Functions
 

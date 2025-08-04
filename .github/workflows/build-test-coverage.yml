@@ -1,0 +1,63 @@
+name: Build, Test and Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake lcov libssl-dev
+        
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake -DENABLE_COVERAGE=ON ..
+        
+    - name: Build
+      run: |
+        cd build
+        make
+        
+    - name: Run tests
+      run: |
+        cd build
+        ctest --output-on-failure
+        
+    - name: Generate coverage report
+      run: |
+        cd build
+        make coverage
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./build/coverage.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        
+    - name: Archive coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: ./build/coverage_report/
+        
+    - name: Archive gcov report (fallback)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: gcov-report
+        path: ./build/gcov_report/
