@@ -1,6 +1,7 @@
 # dlutils-cpp
 
 [![Build and Coverage](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml/badge.svg)](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml)
+[![codecov](https://codecov.io/gh/Jamie-Cui/dlutils-cpp/branch/main/graph/badge.svg)](https://codecov.io/gh/Jamie-Cui/dlutils-cpp)
 
 A header-only C++ library for dynamic loading utilities that provides safe and convenient wrappers around `dlopen`/`dlsym` for dynamically loading shared libraries at runtime.
 
@@ -117,7 +118,7 @@ Otherwise, `gcov` files will be generated in the `gcov_report` directory.
 
 This project uses GitHub Actions for continuous integration. Code coverage reports are automatically generated for each pull request and push to the main branch. You can view the reports by downloading the artifacts from the workflow runs.
 
-[![Build and Coverage](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/coverage.yml/badge.svg)](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/coverage.yml)
+[![Build and Coverage](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml/badge.svg)](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml)
 
 ## Adding New Functions
 
