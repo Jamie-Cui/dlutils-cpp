@@ -118,8 +118,6 @@ Otherwise, `gcov` files will be generated in the `gcov_report` directory.
 
 This project uses GitHub Actions for continuous integration. Code coverage reports are automatically generated for each pull request and push to the main branch. You can view the reports by downloading the artifacts from the workflow runs.
 
-[![Build and Coverage](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml/badge.svg)](https://github.com/Jamie-Cui/dlutils-cpp/actions/workflows/build-test-coverage.yml)
-
 ## Adding New Functions
 
 1. Add a new `DlFun<>` member to your library class
