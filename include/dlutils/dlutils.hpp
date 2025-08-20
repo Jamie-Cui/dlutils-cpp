@@ -189,7 +189,9 @@ protected:
 
   /// @brief Destructor (default)
   ~DlLibBase() {
-    dlclose(libptr_);
+    if(libptr_ != nullptr) {
+      dlclose(libptr_);
+    }
   }
 
   /// @brief Open the dynamic library
