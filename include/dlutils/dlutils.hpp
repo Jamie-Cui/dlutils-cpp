@@ -188,7 +188,9 @@ protected:
   explicit DlLibBase(std::string_view lib) : libName_(lib) {}
 
   /// @brief Destructor (default)
-  ~DlLibBase() = default;
+  ~DlLibBase() {
+    dlclose(libptr_);
+  }
 
   /// @brief Open the dynamic library
   ///
