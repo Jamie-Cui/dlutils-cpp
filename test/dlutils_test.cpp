@@ -24,7 +24,6 @@
 #include "gtest/gtest.h"
 
 #include <string>
-#include <vector>
 
 namespace dlutils {
 namespace internal {
@@ -51,23 +50,7 @@ TEST(MakeStringTest, WithNumbers) {
   EXPECT_EQ(result, "Value: 42 and 3.14");
 }
 
-TEST(MakeStringTest, WithVector) {
-  std::vector<int> vec = {1, 2, 3, 4, 5};
-  std::string result = internal::MakeString(vec);
-  EXPECT_EQ(result, "1 2 3 4 5");
-}
 
-TEST(MakeStringTest, WithVectorAndCustomDelimiter) {
-  std::vector<int> vec = {1, 2, 3, 4, 5};
-  std::string result = internal::MakeString(vec, std::string(","));
-  EXPECT_EQ(result, "1,2,3,4,5");
-}
-
-TEST(MakeStringTest, WithEmptyVector) {
-  std::vector<int> vec = {};
-  std::string result = internal::MakeString(vec);
-  EXPECT_EQ(result, "");
-}
 
 // Additional tests for MakeStringInternal
 TEST(MakeStringTest, WithStdString) {
@@ -154,16 +137,12 @@ class MockDlLib : public DlLibBase {
 public:
   explicit MockDlLib(std::string_view lib) : DlLibBase(lib) {}
 
-  bool OpenLib() { return SelfDlOpen(); }
+  void OpenLib() { SelfDlOpen(); }
 
   template <class R, class... Args>
-  bool LoadSymbol(std::string_view funName, DlFun<R, Args...> &outFun) {
-    return SelfDlSym(funName, outFun);
+  void LoadSymbol(std::string_view funName, DlFun<R, Args...> &outFun) {
+    SelfDlSym(funName, outFun);
   }
-
-  bool CheckCache() { return CheckFunCache(); }
-
-  size_t CacheSize() { return GetFunCacheSize(); }
 };
 
 // Tests for DlLibBase class
@@ -173,16 +152,7 @@ TEST(DlLibBaseTest, Constructor) {
   SUCCEED();
 }
 
-TEST(DlLibBaseTest, GetFunCacheSizeInitiallyZero) {
-  MockDlLib lib("libtest.so");
-  EXPECT_EQ(lib.CacheSize(), 0u);
-}
 
-TEST(DlLibBaseTest, CheckFunCacheInitiallyTrue) {
-  MockDlLib lib("libtest.so");
-  // Initially no functions loaded, so should return true
-  EXPECT_TRUE(lib.CheckCache());
-}
 
 // Additional tests for DlLibBase class
 TEST(DlLibBaseTest, ConstructorWithEmptyString) {
@@ -208,15 +178,13 @@ TEST(DlLibBaseTest, SelfDlOpenWithEmptyLibraryName) {
 TEST(DlLibBaseTest, SelfDlSymWithEmptyFunctionName) {
   MockDlLib lib("libtest.so");
   DlFun<int, int, int> func;
-  EXPECT_FALSE(lib.LoadSymbol("", func));
-  EXPECT_EQ(func.GetName(), "unknown");
+  EXPECT_THROW(lib.LoadSymbol("", func), std::runtime_error);
 }
 
 TEST(DlLibBaseTest, SelfDlSymWithoutOpeningLibrary) {
   MockDlLib lib("libtest.so");
   DlFun<int, int, int> func;
-  EXPECT_FALSE(lib.LoadSymbol("test_function", func));
-  EXPECT_EQ(func.GetName(), "unknown");
+  EXPECT_THROW(lib.LoadSymbol("test_function", func), std::runtime_error);
 }
 
 TEST(DlLibBaseTest, MultipleFunctionLoads) {
@@ -224,19 +192,10 @@ TEST(DlLibBaseTest, MultipleFunctionLoads) {
   DlFun<int, int, int> func1;
   DlFun<double, double> func2;
   
-  // Cache size should be 0 initially
-  EXPECT_EQ(lib.CacheSize(), 0u);
-  
   // Try to load functions without opening library
-  // These should return false and not add to cache since preconditions aren't met
-  EXPECT_FALSE(lib.LoadSymbol("func1", func1));
-  EXPECT_FALSE(lib.LoadSymbol("func2", func2));
-  
-  // Cache size should still be 0 since SelfDlSym returns false when preconditions aren't met
-  EXPECT_EQ(lib.CacheSize(), 0u);
-  
-  // CheckFunCache should return true since cache is empty
-  EXPECT_TRUE(lib.CheckCache());
+  // These should throw exceptions since library is not loaded
+  EXPECT_THROW(lib.LoadSymbol("func1", func1), std::runtime_error);
+  EXPECT_THROW(lib.LoadSymbol("func2", func2), std::runtime_error);
 }
 
 } // namespace dlutils

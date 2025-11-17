@@ -27,7 +27,6 @@
 
 #include <functional>
 #include <sstream>
-#include <vector>
 
 /// @brief A header-only C++ library for dynamic loading utilities
 ///
@@ -82,24 +81,6 @@ inline void MakeStringInternal(std::stringstream &ss, const T &t,
 template <typename... Args> std::string MakeString(const Args &...args) {
   std::stringstream ss;
   MakeStringInternal(ss, args...);
-  return std::string(ss.str());
-}
-
-/// @brief Creates a string from vector elements with optional delimiter
-/// @tparam T The type of elements in the vector
-/// @param v The vector of elements to convert to string
-/// @param delim The delimiter to use between elements (default: space)
-/// @return A string containing all vector elements separated by the delimiter
-template <typename T>
-std::string MakeString(const std::vector<T> &v,
-                       const std::string &delim = " ") {
-  std::stringstream ss;
-  for (auto it = v.begin(); it < v.end(); it++) {
-    if (it != v.begin()) {
-      MakeStringInternal(ss, delim);
-    }
-    MakeStringInternal(ss, *it);
-  }
   return std::string(ss.str());
 }
 
@@ -189,7 +170,7 @@ protected:
 
   /// @brief Destructor (default)
   ~DlLibBase() {
-    if(libptr_ != nullptr) {
+    if (libptr_ != nullptr) {
       dlclose(libptr_);
     }
   }
@@ -201,10 +182,15 @@ protected:
   /// filename contains a slash ("/"), then it is interpreted as a (relative or
   /// absolute) pathname. Otherwise, the dynamic linker searches for the object.
   ///
-  /// @return true if the library was successfully loaded, false otherwise
-  bool SelfDlOpen() {
+  /// @throws std::runtime_error if the library fails to load
+  void SelfDlOpen() {
     libptr_ = dlopen(libName_.data(), RTLD_NOW | RTLD_GLOBAL);
-    return libptr_ != nullptr;
+    if (libptr_ == nullptr) {
+      throw std::runtime_error(
+          internal::MakeString("[", __FILE__, ":", __LINE__,
+                               "] Fatal Error: failed to load library '",
+                               libName_, "'. dlopen error: ", dlerror()));
+    }
   }
 
   /// @brief Load a symbol from the dynamic library
@@ -221,47 +207,42 @@ protected:
   /// @tparam Args The parameter types of the function
   /// @param funName The name of the function to load
   /// @param outFun The DlFun object to populate with the function
-  /// @return true if the symbol lookup was attempted (even if it failed), false
-  /// if preconditions were not met
+  /// @throws std::runtime_error if the library is not loaded or symbol lookup
+  /// fails
   template <class R, class... Args>
-  bool SelfDlSym(std::string_view funName, DlFun<R, Args...> &outFun) {
-    if (libptr_ == nullptr || funName.empty()) {
-      return false;
+  void SelfDlSym(std::string_view funName, DlFun<R, Args...> &outFun) {
+    if (libptr_ == nullptr) {
+      throw std::runtime_error(internal::MakeString(
+          "[", __FILE__, ":", __LINE__, "] Fatal Error: cannot load symbol '",
+          funName, "' because library '", libName_, "' is not loaded."));
     }
 
+    if (funName.empty()) {
+      throw std::runtime_error(
+          internal::MakeString("[", __FILE__, ":", __LINE__,
+                               "] Fatal Error: function name is empty."));
+    }
+
+    // Clear dlerror before calling dlsym
+    dlerror();
     void *funPtr = dlsym(libptr_, funName.data());
-    funCache_.push_back(
-        funPtr); // Store all function pointers, including failed ones
+    char *error = dlerror();
+
+    if (error != nullptr || funPtr == nullptr) {
+      throw std::runtime_error(internal::MakeString(
+          "[", __FILE__, ":", __LINE__,
+          "] Fatal Error: failed to load symbol '", funName, "' from library '",
+          libName_, "'. dlsym error: ", error));
+    }
+
     outFun =
         DlFun<R, Args...>(funName, reinterpret_cast<R (*)(Args...)>(funPtr));
-    return true;
   }
-
-  /// @brief Check if all functions in the cache were successfully loaded
-  /// @return true if all functions were successfully loaded, false otherwise
-  bool CheckFunCache() const {
-    for (const auto *p : funCache_) {
-      if (p == nullptr) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /// @brief Get the number of functions in the cache
-  /// @return The number of functions in the cache
-  size_t GetFunCacheSize() const { return funCache_.size(); }
 
 private:
   void *libptr_ = nullptr; ///< Handle to the loaded library (default: nullptr)
   const std::string libName_ =
       "unknown"; ///< The name of the library to load (default: "unknown")
-
-  /// @brief Cache of function pointers obtained through dlsym
-  ///
-  /// WARNING: DO NOT manually manipulate these pointers.
-  /// The cache does NOT own these pointers; they should be read-only.
-  std::vector<void *> funCache_;
 };
 
 /// @brief Macro to simplify loading symbols from dynamic libraries

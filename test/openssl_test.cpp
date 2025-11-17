@@ -112,22 +112,39 @@ TEST(OpenSSLTest, ShouldWorkWithSHA1) {
   printf("\n");
 }
 
-// Test to verify library loading status functions
+// Test to verify library loading and exception handling
 TEST(OpenSSLTest, LibraryStatus) {
   auto libcrypto = LibCrypto::GetInstance();
   
-  // Test Size() function
-  EXPECT_GT(libcrypto.Size(), 0u);
-  
-  // Test CheckOk() function
-  EXPECT_TRUE(libcrypto.CheckOk());
-  
-  // Test Reload() function
-  EXPECT_TRUE(libcrypto.Reload());
-  EXPECT_TRUE(libcrypto.CheckOk());
+  // Test Reload() function - should not throw if library is available
+  EXPECT_NO_THROW(libcrypto.Reload());
 }
 
-// Note: Removed the ErrorConditions test as calling OpenSSL functions with null pointers
-// can cause segfaults in the underlying library, which is not a fault of our wrapper.
+// Test exception handling for invalid library
+TEST(OpenSSLTest, InvalidLibraryException) {
+  EXPECT_THROW({
+    class InvalidLib : public DlLibBase {
+    public:
+      InvalidLib() : DlLibBase("nonexistent_library.so") {
+        SelfDlOpen(); // This should throw
+      }
+    } invalidLib;
+  }, std::runtime_error);
+}
+
+// Test exception handling for invalid symbol
+TEST(OpenSSLTest, InvalidSymbolException) {
+  EXPECT_THROW({
+    class LibCryptoInvalidSymbol : public DlLibBase {
+    public:
+      DlFun<int> invalid_function;
+      
+      LibCryptoInvalidSymbol() : DlLibBase("libcrypto.so") {
+        SelfDlOpen();
+        SelfDlSym("nonexistent_function", invalid_function); // This should throw
+      }
+    } invalidLib;
+  }, std::runtime_error);
+}
 
 } // namespace dlutils
