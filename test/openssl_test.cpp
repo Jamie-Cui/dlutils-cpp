@@ -112,39 +112,36 @@ TEST(OpenSSLTest, ShouldWorkWithSHA1) {
   printf("\n");
 }
 
-// Test to verify library loading and exception handling
-TEST(OpenSSLTest, LibraryStatus) {
-  auto libcrypto = LibCrypto::GetInstance();
-  
-  // Test Reload() function - should not throw if library is available
-  EXPECT_NO_THROW(libcrypto.Reload());
-}
-
 // Test exception handling for invalid library
 TEST(OpenSSLTest, InvalidLibraryException) {
-  EXPECT_THROW({
-    class InvalidLib : public DlLibBase {
-    public:
-      InvalidLib() : DlLibBase("nonexistent_library.so") {
-        SelfDlOpen(); // This should throw
-      }
-    } invalidLib;
-  }, std::runtime_error);
+  EXPECT_THROW(
+      {
+        class InvalidLib : public DlLibBase {
+        public:
+          InvalidLib() : DlLibBase("nonexistent_library.so") {
+            SelfDlOpen(); // This should throw
+          }
+        } invalidLib;
+      },
+      std::runtime_error);
 }
 
 // Test exception handling for invalid symbol
 TEST(OpenSSLTest, InvalidSymbolException) {
-  EXPECT_THROW({
-    class LibCryptoInvalidSymbol : public DlLibBase {
-    public:
-      DlFun<int> invalid_function;
-      
-      LibCryptoInvalidSymbol() : DlLibBase("libcrypto.so") {
-        SelfDlOpen();
-        SelfDlSym("nonexistent_function", invalid_function); // This should throw
-      }
-    } invalidLib;
-  }, std::runtime_error);
+  EXPECT_THROW(
+      {
+        class LibCryptoInvalidSymbol : public DlLibBase {
+        public:
+          DlFun<int> invalid_function;
+
+          LibCryptoInvalidSymbol() : DlLibBase("libcrypto.so") {
+            SelfDlOpen();
+            SelfDlSym("nonexistent_function",
+                      invalid_function); // This should throw
+          }
+        } invalidLib;
+      },
+      std::runtime_error);
 }
 
 } // namespace dlutils

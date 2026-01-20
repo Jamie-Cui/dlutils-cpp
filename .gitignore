@@ -1,3 +1,4 @@
+*.eld
 build_coverage
 
 # Devtools

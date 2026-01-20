@@ -45,9 +45,6 @@ public:
     return instance;
   }
 
-  // Reload all functions
-  void Reload() { LoadAll(); }
-
   // Declare all functions that you need
   // NOTE Please make sure the class instance is inited before calling those
   // functions

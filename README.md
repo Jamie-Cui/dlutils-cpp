@@ -9,8 +9,8 @@ A header-only C++ library for dynamic loading utilities that provides safe and c
 
 - **Header-only**: Easy integration with no linking required
 - **Type-safe**: Template-based design ensures compile-time type checking
-- **Exception-safe**: Automatic error handling with meaningful error messages
-- **RAII-compliant**: Automatic resource management
+- **Exception-based error handling**: Errors are reported via `std::runtime_error` with descriptive messages including file, line, and cause
+- **RAII-compliant**: Automatic resource management (libraries are automatically closed on destruction)
 - **Lightweight**: Minimal overhead and dependencies
 - **Thread-aware**: Designed with threading considerations (note: `dlopen`/`dlsym` operations are not thread-safe)
 
@@ -51,30 +51,34 @@ public:
   // Declare the functions you want to load
   dlutils::DlFun<EVP_MD_CTX*> EVP_MD_CTX_new;
   dlutils::DlFun<const EVP_MD*> EVP_sha256;
-  
+
   static LibCrypto& GetInstance() {
-    static LibCrypto instance("libcrypto.so");
+    static LibCrypto instance;
     return instance;
   }
-  
-  bool LoadFunctions() {
-    SelfDlOpen();  // Load the library
+
+private:
+  void LoadAll() {
+    SelfDlOpen();                // Load the library
     DLUTILS_SELF_DLSYM(EVP_MD_CTX_new);  // Load function
     DLUTILS_SELF_DLSYM(EVP_sha256);      // Load function
-    return CheckFunCache();  // Verify all functions loaded successfully
   }
-  
-private:
-  LibCrypto(const std::string& libName) : DlLibBase(libName) {}
+
+  LibCrypto() : DlLibBase("libcrypto.so") {
+    LoadAll();  // Functions are loaded in constructor
+  }
 };
 
-// Usage
-auto& libcrypto = LibCrypto::GetInstance();
-if (libcrypto.LoadFunctions()) {
-  // Use the functions safely
+// Usage - All errors are reported via std::runtime_error
+try {
+  auto& libcrypto = LibCrypto::GetInstance();
+  // Use the functions safely - library and functions are already loaded
   EVP_MD_CTX* ctx = libcrypto.EVP_MD_CTX_new();
   const EVP_MD* md = libcrypto.EVP_sha256();
   // ... use ctx and md ...
+} catch (const std::runtime_error& e) {
+  // Handle library loading or function loading errors
+  std::cerr << "Error: " << e.what() << std::endl;
 }
 ```
 
@@ -120,16 +124,50 @@ This project uses GitHub Actions for continuous integration. Code coverage repor
 
 ## Adding New Functions
 
-1. Add a new `DlFun<>` member to your library class
+1. Add a new `DlFun<>` member to your library class with the correct function signature
 2. Add the function name to the `LoadAll()` method using `DLUTILS_SELF_DLSYM(NAME)`
-3. The template arguments for `DlFun` should match the function signature
+
+```cpp
+// Add declaration
+DlFun<int, const char*> MyNewFunction;
+
+// Add to LoadAll()
+void LoadAll() {
+  SelfDlOpen();
+  DLUTILS_SELF_DLSYM(MyNewFunction);  // <-- Add this line
+}
+```
 
 ## Adding New Libraries
 
 1. Create a new class inheriting from `DlLibBase`
 2. Define `DlFun` members for each function you want to load
-3. Implement `LoadAll()` method to load all functions
-4. Set the correct library name in the constructor
+3. Implement a `LoadAll()` method to call `SelfDlOpen()` and load all functions via `DLUTILS_SELF_DLSYM`
+4. Call `LoadAll()` in your constructor (lazily load on first use, or eagerly load during construction)
+
+```cpp
+class MyLib : public dlutils::DlLibBase {
+public:
+  DlFun<void> some_function;
+  DlFun<int> another_function;
+
+  static MyLib& GetInstance() {
+    static MyLib instance;
+    return instance;
+  }
+
+private:
+  void LoadAll() {
+    SelfDlOpen();
+    DLUTILS_SELF_DLSYM(some_function);
+    DLUTILS_SELF_DLSYM(another_function);
+  }
+
+  MyLib() : DlLibBase("libmylib.so") {
+    LoadAll();
+  }
+};
+```
 
 ## License
 
