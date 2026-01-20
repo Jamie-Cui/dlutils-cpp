@@ -1,0 +1,74 @@
+@startuml dlutils-loading-flow
+!theme plain
+title Library Loading Flow
+
+start
+
+:User creates instance
+of user-defined class
+(e.g., LibCrypto);
+
+note right
+  Singleton pattern:
+  static LibCrypto& GetInstance()
+end note
+
+:Constructor calls
+LoadAll();
+
+partition "LoadAll() Method" {
+    :Call SelfDlOpen();
+
+    :dlopen(libName, RTLD_NOW | RTLD_GLOBAL);
+
+    if (libptr == nullptr?) then (Yes)
+        :throw std::runtime_error
+        "Failed to load library";
+
+        stop
+    else (No)
+        :Library loaded successfully;
+
+        :For each function:
+        DLUTILS_SELF_DLSYM(name);
+
+        partition "SelfDlSym()" {
+            :Check if library loaded;
+
+            if (libptr == nullptr?) then (Yes)
+                :throw std::runtime_error
+                "Library not loaded";
+
+                stop
+            else (No)
+                :dlerror() to clear previous errors;
+
+                :dlsym(libptr, funName);
+
+                if (error != nullptr || funPtr == nullptr?) then (Yes)
+                    :throw std::runtime_error
+                    "Failed to load symbol";
+
+                    stop
+                else (No)
+                    :Create DlFun wrapper
+                    with function pointer;
+
+                    :Store in outFun parameter;
+                endif
+            endif
+        }
+
+        note right
+            Macro expands to:
+            SelfDlSym("function_name", function_name)
+        end note
+    endif
+}
+
+:All functions loaded
+and ready to use;
+
+stop
+
+@enduml

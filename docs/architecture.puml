@@ -1,0 +1,115 @@
+@startuml dlutils-architecture
+!theme plain
+hide empty members
+
+title dlutils-cpp Class Architecture
+
+package "dlutils" {
+    namespace "internal" {
+        class MakeString <<utility>> {
+            +{static} MakeString(Args... args): string
+            +{static} MakeStringInternal(stringstream& ss, Args... args): void
+        }
+    }
+
+    class DlFun<R, Args...> <<template>> {
+        - funName_: string
+        - funptr_: function<R(Args...)>
+        + DlFun()
+        + DlFun(name: string_view, funptr: FunTy)
+        + Get(): function<R(Args...)>
+        + GetName(): string
+        + operator()(args... Args...): R
+        --
+        Template: R = return type, Args = parameter types
+    }
+
+    class DlLibBase {
+        # libptr_: void*
+        # libName_: string
+        # DlLibBase(lib: string_view)
+        # ~DlLibBase()
+        # SelfDlOpen(): void
+        # SelfDlSym<R, Args...>(funName: string_view, outFun: DlFun<R, Args...>&): void
+    }
+
+    macro DLUTILS_SELF_DLSYM {
+        SelfDlSym(#NAME, NAME)
+    }
+}
+
+package "User Code" {
+    class LibCrypto <<User Defined>> {
+        + {static} GetInstance(): LibCrypto&
+        + Reload(): void
+        - LoadAll(): void
+        - LibCrypto()
+        --
+        DlFun<> EVP_MD_CTX_new
+        DlFun<> EVP_sha256
+        DlFun<> EVP_sha1
+        DlFun<> EVP_DigestInit_ex
+        DlFun<> EVP_DigestUpdate
+        DlFun<> EVP_DigestFinal_ex
+        DlFun<> EVP_MD_CTX_free
+    }
+}
+
+package "POSIX API" {
+    class dlopen <<external>> {
+        <dlopen>
+    }
+
+    class dlsym <<external>> {
+        <dlsym>
+    }
+
+    class dlclose <<external>> {
+        <dlclose>
+    }
+
+    class dlerror <<external>> {
+        <dlerror>
+    }
+}
+
+' Relationships
+DlLibBase *-- DlFun : contains
+DlLibBase ..> dlopen : uses
+DlLibBase ..> dlsym : uses
+DlLibBase ..> dlclose : uses
+DlLibBase ..> dlerror : uses
+DlLibBase ..> MakeString : uses for error messages
+
+LibCrypto --|> DlLibBase : extends
+LibCrypto *-- DlFun : contains
+
+note right of DlFun
+  Type-safe wrapper for
+  dynamically loaded
+  function pointers
+
+  Throws std::runtime_error
+  if called when nullptr
+end note
+
+note right of DlLibBase
+  Base class for dynamic
+  library loading
+
+  Uses RAII for automatic
+  resource cleanup
+
+  All methods throw
+  std::runtime_error on failure
+end note
+
+note bottom of LibCrypto
+  Example implementation
+  loading OpenSSL libcrypto
+
+  Demonstrates singleton pattern
+  with eager loading in constructor
+end note
+
+@enduml

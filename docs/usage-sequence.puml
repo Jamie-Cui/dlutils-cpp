@@ -1,0 +1,125 @@
+@startuml dlutils-usage-sequence
+!theme plain
+title Runtime Usage Sequence
+
+actor User
+participant "Main" as App
+participant "LibCrypto\n(User Class)" as Lib
+participant "DlLibBase" as Base
+participant "DlFun<EVP_MD_CTX*>" as Fun1
+participant "DlFun<const EVP_MD*>" as Fun2
+participant "libcrypto.so" as LibSo
+
+== Initialization (First Use) ==
+
+User -> App: Call GetInstance()
+activate App
+
+App -> Lib: GetInstance() [static]
+activate Lib
+
+create Lib
+Lib -> Lib: new LibCrypto()
+Lib -> Base: DlLibBase("libcrypto.so")
+activate Base
+Base -> Base: libptr_ = nullptr
+Base -> Lib: initialization complete
+deactivate Base
+
+Lib -> Lib: LoadAll()
+Lib -> Base: SelfDlOpen()
+Base -> LibSo: dlopen("libcrypto.so", RTLD_NOW|RTLD_GLOBAL)
+activate LibSo
+LibSo --> Base: libptr_
+deactivate LibSo
+
+Lib -> Base: SelfDlSym("EVP_MD_CTX_new", Fun1)
+Base -> LibSo: dlsym(libptr_, "EVP_MD_CTX_new")
+LibSo --> Base: function pointer
+Base -> Fun1: Create DlFun wrapper
+
+Lib -> Base: SelfDlSym("EVP_sha256", Fun2)
+Base -> LibSo: dlsym(libptr_, "EVP_sha256")
+LibSo --> Base: function pointer
+Base -> Fun2: Create DlFun wrapper
+
+Lib --> App: return instance reference
+deactivate Lib
+App --> User: LibCrypto&
+
+note right
+  All subsequent calls
+  return the same instance
+  (Singleton pattern)
+end note
+
+== Runtime Usage ==
+
+User -> App: Use loaded functions
+activate App
+
+App -> Lib: libcrypto.EVP_MD_CTX_new()
+activate Lib
+
+Lib -> Fun1: operator()()
+activate Fun1
+
+Fun1 -> Fun1: Check funptr_ != nullptr
+
+alt funptr_ is nullptr
+    Fun1 --> Lib: throw std::runtime_error
+    Lib --> App: exception
+    App --> User: error
+else funptr_ is valid
+    Fun1 -> LibSo: Call actual function
+    activate LibSo
+    LibSo --> Fun1: EVP_MD_CTX* result
+    deactivate LibSo
+    Fun1 --> Lib: return result
+    deactivate Fun1
+    Lib --> App: EVP_MD_CTX* ctx
+end alt
+
+deactivate Lib
+
+App -> Lib: libcrypto.EVP_sha256()
+activate Lib
+
+Lib -> Fun2: operator()()
+activate Fun2
+
+Fun2 -> Fun2: Check funptr_ != nullptr
+
+alt funptr_ is nullptr
+    Fun2 --> Lib: throw std::runtime_error
+    Lib --> App: exception
+else funptr_ is valid
+    Fun2 -> LibSo: Call actual function
+    activate LibSo
+    LibSo --> Fun2: const EVP_MD* result
+    deactivate LibSo
+    Fun2 --> Lib: return result
+    deactivate Fun2
+    Lib --> App: const EVP_MD* md
+end alt
+
+deactivate Lib
+
+App -> App: Use ctx and md
+App --> User: Results
+
+== Cleanup (Program Exit) ==
+
+User -> App: Program exits
+App -> Lib: ~LibCrypto()
+activate Lib
+Lib -> Base: ~DlLibBase()
+activate Base
+Base -> LibSo: dlclose(libptr_)
+activate LibSo
+LibSo --> Base: library closed
+deactivate LibSo
+deactivate Base
+deactivate Lib
+
+@enduml

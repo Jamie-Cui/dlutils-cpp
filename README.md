@@ -169,6 +169,16 @@ private:
 };
 ```
 
+## Documentation
+
+For detailed architecture diagrams and flowcharts, see the [docs/](docs/) directory:
+
+- **[architecture.puml](docs/architecture.puml)** - Class architecture diagram
+- **[loading-flow.puml](docs/loading-flow.puml)** - Library loading flowchart
+- **[usage-sequence.puml](docs/usage-sequence.puml)** - Runtime usage sequence diagram
+
+See [docs/README.md](docs/README.md) for instructions on rendering PlantUML diagrams.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
