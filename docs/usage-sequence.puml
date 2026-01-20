@@ -4,11 +4,11 @@ title Runtime Usage Sequence
 
 actor User
 participant "Main" as App
-participant "LibCrypto\n(User Class)" as Lib
+participant "LibCrypto" as Lib
 participant "DlLibBase" as Base
-participant "DlFun<EVP_MD_CTX*>" as Fun1
-participant "DlFun<const EVP_MD*>" as Fun2
-participant "libcrypto.so" as LibSo
+participant "DlFun_CTX" as Fun1
+participant "DlFun_md" as Fun2
+database "libcrypto.so" as LibSo
 
 == Initialization (First Use) ==
 
@@ -18,7 +18,6 @@ activate App
 App -> Lib: GetInstance() [static]
 activate Lib
 
-create Lib
 Lib -> Lib: new LibCrypto()
 Lib -> Base: DlLibBase("libcrypto.so")
 activate Base
@@ -47,7 +46,7 @@ Lib --> App: return instance reference
 deactivate Lib
 App --> User: LibCrypto&
 
-note right
+note right of Lib
   All subsequent calls
   return the same instance
   (Singleton pattern)

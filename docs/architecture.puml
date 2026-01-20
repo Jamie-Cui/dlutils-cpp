@@ -5,37 +5,36 @@ hide empty members
 title dlutils-cpp Class Architecture
 
 package "dlutils" {
-    namespace "internal" {
+    package "internal" {
         class MakeString <<utility>> {
             +{static} MakeString(Args... args): string
             +{static} MakeStringInternal(stringstream& ss, Args... args): void
         }
     }
 
-    class DlFun<R, Args...> <<template>> {
+    class "DlFun<R, Args...>" as DlFun {
         - funName_: string
-        - funptr_: function<R(Args...)>
+        - funptr_: function
         + DlFun()
-        + DlFun(name: string_view, funptr: FunTy)
-        + Get(): function<R(Args...)>
+        + DlFun(name, funptr)
+        + Get(): function
         + GetName(): string
-        + operator()(args... Args...): R
+        + operator()(args...): R
         --
-        Template: R = return type, Args = parameter types
+        Template wrapper for
+        function pointers
     }
 
     class DlLibBase {
         # libptr_: void*
         # libName_: string
-        # DlLibBase(lib: string_view)
+        # DlLibBase(lib)
         # ~DlLibBase()
         # SelfDlOpen(): void
-        # SelfDlSym<R, Args...>(funName: string_view, outFun: DlFun<R, Args...>&): void
+        # SelfDlSym(funName, outFun): void
     }
 
-    macro DLUTILS_SELF_DLSYM {
-        SelfDlSym(#NAME, NAME)
-    }
+    note "DLUTILS_SELF_DLSYM(NAME)\nExpands to: SelfDlSym(#NAME, NAME)" as MacroNote
 }
 
 package "User Code" {
@@ -45,13 +44,13 @@ package "User Code" {
         - LoadAll(): void
         - LibCrypto()
         --
-        DlFun<> EVP_MD_CTX_new
-        DlFun<> EVP_sha256
-        DlFun<> EVP_sha1
-        DlFun<> EVP_DigestInit_ex
-        DlFun<> EVP_DigestUpdate
-        DlFun<> EVP_DigestFinal_ex
-        DlFun<> EVP_MD_CTX_free
+        DlFun EVP_MD_CTX_new
+        DlFun EVP_sha256
+        DlFun EVP_sha1
+        DlFun EVP_DigestInit_ex
+        DlFun EVP_DigestUpdate
+        DlFun EVP_DigestFinal_ex
+        DlFun EVP_MD_CTX_free
     }
 }
 
